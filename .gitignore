@@ -1,0 +1,27 @@
+# Project files and directories created by Eclipse
+*/bin
+*/gen
+local.properties
+.settings
+
+# Project files and directories created by Android Studio and IntelliJ Idea
+/.idea
+*.iml
+out/
+/build/**
+/*/build/
+/.gradle/
+
+# APK files
+*.apk
+
+# Python
+*.pyc
+*.pyo
+
+.ds_store
+
+/cucumber-report
+/buildSrc/.gradle/**
+captures
+logs/*.log
