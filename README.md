@@ -1,2 +1,2 @@
-# slack-take-home-project
-Take home project as part of the interview with Slack
+# android-code-exercise
+Skeleton project for the coding exercise for Android candidates
