@@ -13,6 +13,8 @@ import com.slack.exercise.databinding.FragmentUserSearchBinding
 import com.slack.exercise.model.UserSearchResult
 import dagger.android.support.DaggerFragment
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import javax.inject.Inject
 
 /**
@@ -91,5 +93,22 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
       }
       setHasFixedSize(true)
     }
+  }
+
+  override fun termExistInDenyList(searchTerm: String): Boolean {
+    val inputStream = resources.openRawResource(R.raw.denylist)
+    val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+    var eachLine = bufferedReader.readLine();
+    while (eachLine != null) {
+      if (eachLine.trim() == searchTerm) {
+        return true
+      }
+      eachLine = bufferedReader.readLine()
+    }
+    return false
+  }
+
+  override fun addTermToDenyList(searchTerm: String): Boolean {
+    TODO("Not yet implemented")
   }
 }

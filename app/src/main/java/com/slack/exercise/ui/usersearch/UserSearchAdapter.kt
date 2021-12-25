@@ -6,34 +6,35 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.slack.exercise.R
+import com.slack.exercise.dataBinding.DataBoundViewHolder
+import com.slack.exercise.databinding.ItemUserSearchBinding
 import com.slack.exercise.model.UserSearchResult
 import kotlinx.android.synthetic.main.item_user_search.view.username
 
 /**
  * Adapter for the list of [UserSearchResult].
  */
-class UserSearchAdapter : RecyclerView.Adapter<UserSearchAdapter.UserSearchViewHolder>() {
-  private var userSearchResults: List<UserSearchResult> = emptyList()
+class UserSearchAdapter : RecyclerView.Adapter<DataBoundViewHolder<ItemUserSearchBinding>>() {
+    private var userSearchResults: List<UserSearchResult> = emptyList()
 
-  fun setResults(results: Set<UserSearchResult>) {
-    userSearchResults = results.toList()
-    notifyDataSetChanged()
-  }
+    fun setResults(results: Set<UserSearchResult>) {
+        userSearchResults = results.toList()
+        notifyDataSetChanged()
+    }
 
-  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserSearchViewHolder {
-    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_user_search, parent, false)
-    return UserSearchViewHolder(view)
-  }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataBoundViewHolder<ItemUserSearchBinding> =
+            DataBoundViewHolder(ItemUserSearchBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+            ))
 
-  override fun getItemCount(): Int {
-    return userSearchResults.size
-  }
 
-  override fun onBindViewHolder(holder: UserSearchViewHolder, position: Int) {
-    holder.username.text = userSearchResults[position].username
-  }
+    override fun getItemCount(): Int {
+        return userSearchResults.size
+    }
 
-  class UserSearchViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val username: TextView = itemView.username
-  }
+    override fun onBindViewHolder(holder: DataBoundViewHolder<ItemUserSearchBinding>, position: Int) {
+        holder.binding.user = userSearchResults[position]
+    }
 }
