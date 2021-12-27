@@ -17,32 +17,35 @@ private const val API_URL = "https://slack-users.herokuapp.com/"
  */
 @Singleton
 class SlackApiImpl @Inject constructor() : SlackApi {
-  private val service: UserSearchService
+    private val service: UserSearchService
 
-  init {
-    val interceptor: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
-      level = HttpLoggingInterceptor.Level.BODY
+    init {
+        val interceptor: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+        val client: OkHttpClient = OkHttpClient.Builder()
+                .addInterceptor(interceptor)
+                .build()
+
+        service = Retrofit.Builder()
+                .baseUrl(API_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .client(client)
+                .build()
+                .create(UserSearchService::class.java)
     }
 
-    val client: OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(interceptor)
-        .build()
+    override fun searchUsers(searchTerm: String): Single<List<User>> =
+        service.searchUsers(searchTerm)
+                .flatMap {response ->
+                    if (response.ok) {
+                        Single.just(response.users)
+                    } else {
+                        Single.error(TermNotFound())
+                    }
+                }
+                .subscribeOn(Schedulers.io())
 
-    service = Retrofit.Builder()
-        .baseUrl(API_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
-        .client(client)
-        .build()
-        .create(UserSearchService::class.java)
-  }
-
-  override fun searchUsers(searchTerm: String): Single<List<User>> {
-    return service.searchUsers(searchTerm)
-        .map {
-          it.users
-        }
-        .subscribeOn(Schedulers.io())
-
-  }
 }

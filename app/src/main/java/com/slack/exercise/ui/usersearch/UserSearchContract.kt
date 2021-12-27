@@ -29,7 +29,27 @@ interface UserSearchContract {
     /**
      * Check weather [searchTerm] exist in the deny list.
      */
-    fun addTermToDenyList(searchTerm: String): Boolean
+    fun addTermToDenyList(searchTerm: String)
+
+    /**
+     * Call when api returns not found for a specific term
+     */
+    fun showSearchNotFoundState()
+
+    /**
+     * Call when search term exists in the deny list
+     */
+    fun showSearchTermDenied(term: String)
+
+    /**
+     * Call when start performing search
+     */
+    fun showLoadingState()
+
+    /**
+    * Call when finish performing search
+    */
+    fun hideLoadingState()
   }
 
   interface Presenter {

@@ -1,47 +1,76 @@
 package com.slack.exercise.ui.usersearch
 
+import com.slack.exercise.api.TermNotFound
 import com.slack.exercise.dataprovider.UserSearchResultDataProvider
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
+import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
  * Presenter responsible for reacting to user inputs and initiating search queries.
  */
 class UserSearchPresenter @Inject constructor(
-        private val userNameResultDataProvider: UserSearchResultDataProvider
+    private val userNameResultDataProvider: UserSearchResultDataProvider
 ) : UserSearchContract.Presenter {
 
     private var view: UserSearchContract.View? = null
-    private val searchQuerySubject = PublishSubject.create<String>()
+    private val searchQuerySubject = BehaviorSubject.create<String>()
+    private val searchQueryStream by lazy {
+        searchQuerySubject.debounce(200L, TimeUnit.MILLISECONDS)
+    }
     private var searchQueryDisposable = Disposable.disposed()
 
     override fun attach(view: UserSearchContract.View) {
         this.view = view
 
-        searchQueryDisposable = searchQuerySubject
-
-                .flatMapSingle { searchTerm ->
-                    if (searchTerm.isEmpty()) {
-                        Single.just(emptySet())
+        searchQueryDisposable = searchQueryStream
+            .observeOn(AndroidSchedulers.mainThread())
+            .flatMapSingle({ searchTerm ->
+                if (searchTerm.isEmpty()) {
+                    Single.just(emptySet())
+                } else {
+                    this@UserSearchPresenter.view?.showLoadingState()
+                    val termExist: Boolean? = this@UserSearchPresenter.view?.termExistInDenyList(searchTerm)
+                    if (termExist == false) {
+                        userNameResultDataProvider.fetchUsers(searchTerm)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnError {
+                                if (it is TermNotFound) {
+                                    this@UserSearchPresenter.view?.apply {
+                                        hideLoadingState()
+                                        addTermToDenyList(searchTerm)
+                                        showSearchNotFoundState()
+                                    }
+                                }
+                            }
                     } else {
-                        val termExist: Boolean? = this@UserSearchPresenter.view?.termExistInDenyList(searchTerm)
-                        if (termExist == false) {
-                            userNameResultDataProvider.fetchUsers(searchTerm)
-                        } else {
-                            Single.just(emptySet())
+                        this@UserSearchPresenter.view?.apply {
+                            hideLoadingState()
+                            showSearchTermDenied(searchTerm)
                         }
+                        Single.error(Throwable("Search term denied"))
                     }
                 }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe(
-                        { results -> this@UserSearchPresenter.view?.onUserSearchResults(results) },
-                        { error -> this@UserSearchPresenter.view?.onUserSearchError(error) }
-                )
+            }, true)
+            .subscribe({ results ->
+                this@UserSearchPresenter.view?.apply {
+                    hideLoadingState()
+                    onUserSearchResults(results)
+                }
+            }, { error ->
+                if (error is TermNotFound) {
+                    this@UserSearchPresenter.view?.apply {
+                        hideLoadingState()
+                        onUserSearchError(error)
+                    }
+                }
+            })
     }
 
     override fun detach() {
