@@ -2,4 +2,7 @@
     <string name="app_name">Slack Challenge</string>
     <string name="search_users_hint">Search Users</string>
     <string name="deny_list_pref_key">deny-list</string>
+    <string name="generic_error_msg">Oops! Something went wrong, please try again later!</string>
+    <string name="term_denied_error_msg">The search term \"%1$s\" has been denied! Please search something else!</string>
+    <string name="user_not_found_error_msg">No user was found!</string>
 </resources>

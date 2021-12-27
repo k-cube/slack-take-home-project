@@ -4,13 +4,12 @@ package com.slack.exercise.ui.usersearch
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.slack.exercise.R
 import com.slack.exercise.databinding.FragmentUserSearchBinding
+import com.slack.exercise.extensions.addTermToDenyList
 import com.slack.exercise.extensions.hide
+import com.slack.exercise.extensions.retrieveDeniedListFromPref
 import com.slack.exercise.extensions.show
 import com.slack.exercise.model.UserSearchResult
 import dagger.android.support.DaggerFragment
@@ -89,7 +88,7 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         userSearchBinding.apply {
             userSearchResultList.hide()
             errorField.show()
-            errorField.text = "No user was found!"
+            errorField.text = getString(R.string.user_not_found_error_msg)
         }
     }
 
@@ -97,7 +96,7 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         userSearchBinding.apply {
             userSearchResultList.hide()
             errorField.show()
-            errorField.text = "The search term \"$term\" has been denied! Please search something else!"
+            errorField.text = getString(R.string.term_denied_error_msg, term)
         }
     }
 
@@ -113,7 +112,7 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         userSearchBinding.apply {
             userSearchResultList.hide()
             errorField.show()
-            errorField.text = "Oops! Something went wrong, please try again later!"
+            errorField.text = getString(R.string.generic_error_msg)
         }
     }
 
@@ -139,6 +138,7 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
     }
 
     override fun termExistInDenyList(searchTerm: String): Boolean {
+        val context = context ?: return false
         val originalInputStream = resources.openRawResource(R.raw.denylist)
 
         val bufferedReader = BufferedReader(InputStreamReader(originalInputStream))
@@ -151,29 +151,11 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         }
 
         // Check the secondary denied list in pref
-        val listOfTerms = retrieveDeniedListFromPref()
+        val listOfTerms = context.retrieveDeniedListFromPref()
         return listOfTerms.contains(searchTerm)
     }
 
     override fun addTermToDenyList(searchTerm: String) {
-        val context = context ?: return
-
-        val listOfCurrentTerms = retrieveDeniedListFromPref()
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val editor = sharedPreferences.edit()
-        val newList = mutableListOf<String>().apply {
-            addAll(listOfCurrentTerms)
-            add(searchTerm)
-        }
-
-        editor.putString(getString(R.string.deny_list_pref_key), Gson().toJson(newList))
-        editor.apply()
-    }
-
-    private fun retrieveDeniedListFromPref() : List<String> {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val jsonList = sharedPreferences.getString(getString(R.string.deny_list_pref_key), "")
-        val stringListType = object : TypeToken<List<String>>() {}.type
-        return Gson().fromJson<List<String>>(jsonList, stringListType) ?: emptyList()
+        context?.addTermToDenyList(searchTerm)
     }
 }

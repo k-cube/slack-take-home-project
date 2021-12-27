@@ -20,7 +20,7 @@ class UserSearchPresenter @Inject constructor(
 ) : UserSearchContract.Presenter {
 
     private var view: UserSearchContract.View? = null
-    private val searchQuerySubject = BehaviorSubject.create<String>()
+    private val searchQuerySubject = PublishSubject.create<String>()
     private val searchQueryStream by lazy {
         searchQuerySubject.debounce(200L, TimeUnit.MILLISECONDS)
     }
@@ -35,16 +35,16 @@ class UserSearchPresenter @Inject constructor(
                 if (searchTerm.isEmpty()) {
                     Single.just(emptySet())
                 } else {
-                    this@UserSearchPresenter.view?.showLoadingState()
-                    val termExist: Boolean? = this@UserSearchPresenter.view?.termExistInDenyList(searchTerm)
-                    if (termExist == false) {
+                    view.showLoadingState()
+                    val termExist: Boolean = view.termExistInDenyList(searchTerm)
+                    if (!termExist) {
                         userNameResultDataProvider.fetchUsers(searchTerm)
                             .observeOn(AndroidSchedulers.mainThread())
                             .doOnError {
                                 onFetchError(it, searchTerm)
                             }
                     } else {
-                        this@UserSearchPresenter.view?.apply {
+                        view.apply {
                             hideLoadingState()
                             showSearchTermDenied(searchTerm)
                         }
