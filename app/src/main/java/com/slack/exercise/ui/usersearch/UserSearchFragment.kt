@@ -144,7 +144,8 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         val bufferedReader = BufferedReader(InputStreamReader(originalInputStream))
         var eachLine = bufferedReader.readLine();
         while (eachLine != null) {
-            if (eachLine.trim() == searchTerm) {
+            val deniedTerm = eachLine.trim()
+            if (searchTerm == deniedTerm || searchTerm.startsWith(deniedTerm)) {
                 return true
             }
             eachLine = bufferedReader.readLine()
