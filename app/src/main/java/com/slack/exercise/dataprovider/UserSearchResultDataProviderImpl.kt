@@ -14,19 +14,26 @@ import javax.inject.Singleton
 class UserSearchResultDataProviderImpl @Inject constructor(
     private val slackApi: SlackApi) : UserSearchResultDataProvider {
 
+    val cacheResponse = mutableMapOf<String, Set<UserSearchResult>>()
+
     /**
      * Returns a [Single] emitting a set of [UserSearchResult].
      */
     override fun fetchUsers(searchTerm: String): Single<Set<UserSearchResult>> {
+        cacheResponse[searchTerm]?.let {
+            return Single.just(it)
+        }
         return slackApi.searchUsers(searchTerm)
             .map {
-                it.map { user ->
+                val results = it.map { user ->
                     UserSearchResult(
                             username = user.username,
                             imageUrl = user.avatarUrl,
                             fullName = user.displayName
                     )
                 }.toSet()
+                cacheResponse[searchTerm] = results
+                results
             }
     }
 }

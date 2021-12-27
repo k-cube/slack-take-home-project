@@ -109,6 +109,14 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         }
     }
 
+    override fun showGenericErrorState() {
+        userSearchBinding.apply {
+            userSearchResultList.hide()
+            errorField.show()
+            errorField.text = "Oops! Something went wrong, please try again later!"
+        }
+    }
+
     override fun hideLoadingState() {
         userSearchBinding.apply {
             progressCircular.hide()

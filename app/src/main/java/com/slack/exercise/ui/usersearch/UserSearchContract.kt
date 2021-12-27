@@ -42,6 +42,11 @@ interface UserSearchContract {
     fun showSearchTermDenied(term: String)
 
     /**
+     * Call when search term exists in the deny list
+     */
+    fun showGenericErrorState()
+
+    /**
      * Call when start performing search
      */
     fun showLoadingState()

@@ -41,13 +41,7 @@ class UserSearchPresenter @Inject constructor(
                         userNameResultDataProvider.fetchUsers(searchTerm)
                             .observeOn(AndroidSchedulers.mainThread())
                             .doOnError {
-                                if (it is TermNotFound) {
-                                    this@UserSearchPresenter.view?.apply {
-                                        hideLoadingState()
-                                        addTermToDenyList(searchTerm)
-                                        showSearchNotFoundState()
-                                    }
-                                }
+                                onFetchError(it, searchTerm)
                             }
                     } else {
                         this@UserSearchPresenter.view?.apply {
@@ -63,14 +57,21 @@ class UserSearchPresenter @Inject constructor(
                     hideLoadingState()
                     onUserSearchResults(results)
                 }
-            }, { error ->
-                if (error is TermNotFound) {
-                    this@UserSearchPresenter.view?.apply {
-                        hideLoadingState()
-                        onUserSearchError(error)
-                    }
-                }
+            }, {
+                this@UserSearchPresenter.view?.hideLoadingState()
             })
+    }
+
+    private fun onFetchError(it: Throwable?, searchTerm: String) {
+        this@UserSearchPresenter.view?.hideLoadingState()
+        if (it is TermNotFound) {
+            this@UserSearchPresenter.view?.apply {
+                addTermToDenyList(searchTerm)
+                showSearchNotFoundState()
+            }
+        } else {
+            this@UserSearchPresenter.view?.showGenericErrorState()
+        }
     }
 
     override fun detach() {
