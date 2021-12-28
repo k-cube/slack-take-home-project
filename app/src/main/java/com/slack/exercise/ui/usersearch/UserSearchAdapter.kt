@@ -1,15 +1,11 @@
 package com.slack.exercise.ui.usersearch
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.slack.exercise.R
 import com.slack.exercise.dataBinding.DataBoundViewHolder
 import com.slack.exercise.databinding.ItemUserSearchBinding
 import com.slack.exercise.model.UserSearchResult
-import kotlinx.android.synthetic.main.item_user_search.view.username
 
 /**
  * Adapter for the list of [UserSearchResult].
