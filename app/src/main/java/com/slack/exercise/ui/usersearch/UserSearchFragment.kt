@@ -7,13 +7,12 @@ import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.slack.exercise.R
 import com.slack.exercise.databinding.FragmentUserSearchBinding
-import com.slack.exercise.extensions.addTermToDenyList
+import com.slack.exercise.extensions.addTermToDeniedList
 import com.slack.exercise.extensions.hide
 import com.slack.exercise.extensions.retrieveDeniedListFromPref
 import com.slack.exercise.extensions.show
 import com.slack.exercise.model.UserSearchResult
 import dagger.android.support.DaggerFragment
-import timber.log.Timber
 import java.io.*
 import javax.inject.Inject
 
@@ -80,8 +79,12 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
         adapter.setResults(results)
     }
 
-    override fun onUserSearchError(error: Throwable) {
-        Timber.e(error, "Error searching users.")
+    override fun onUserSearchError() {
+        userSearchBinding.apply {
+            userSearchResultList.hide()
+            errorField.show()
+            errorField.text = getString(R.string.generic_error_msg)
+        }
     }
 
     override fun showSearchNotFoundState() {
@@ -105,14 +108,6 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
             userSearchResultList.hide()
             errorField.hide()
             progressCircular.show()
-        }
-    }
-
-    override fun showGenericErrorState() {
-        userSearchBinding.apply {
-            userSearchResultList.hide()
-            errorField.show()
-            errorField.text = getString(R.string.generic_error_msg)
         }
     }
 
@@ -153,10 +148,15 @@ class UserSearchFragment : DaggerFragment(), UserSearchContract.View {
 
         // Check the secondary denied list in pref
         val listOfTerms = context.retrieveDeniedListFromPref()
-        return listOfTerms.contains(searchTerm)
+        listOfTerms.forEach { deniedTerm ->
+            if (searchTerm == deniedTerm || searchTerm.startsWith(deniedTerm)) {
+                return true
+            }
+        }
+        return false
     }
 
     override fun addTermToDenyList(searchTerm: String) {
-        context?.addTermToDenyList(searchTerm)
+        context?.addTermToDeniedList(searchTerm)
     }
 }

@@ -19,7 +19,7 @@ interface UserSearchContract {
     /**
      * Call when an error occurs during the execution of search queries.
      */
-    fun onUserSearchError(error: Throwable)
+    fun onUserSearchError()
 
     /**
      * Check weather [searchTerm] exist in the deny list.
@@ -40,11 +40,6 @@ interface UserSearchContract {
      * Call when search term exists in the deny list
      */
     fun showSearchTermDenied(term: String)
-
-    /**
-     * Call when search term exists in the deny list
-     */
-    fun showGenericErrorState()
 
     /**
      * Call when start performing search

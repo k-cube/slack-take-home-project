@@ -6,7 +6,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.slack.exercise.R
 
-fun Context.addTermToDenyList(searchTerm: String){
+/**
+ * update the denied list with [searchTerm]. This is called when search api returns not found
+ */
+fun Context.addTermToDeniedList(searchTerm: String){
     val listOfCurrentTerms = retrieveDeniedListFromPref()
     val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
     val editor = sharedPreferences.edit()

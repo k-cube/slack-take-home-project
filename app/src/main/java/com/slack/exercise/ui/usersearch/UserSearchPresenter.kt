@@ -59,18 +59,19 @@ class UserSearchPresenter @Inject constructor(
                 }
             }, {
                 this@UserSearchPresenter.view?.hideLoadingState()
+                onFetchError(it)
             })
     }
 
-    private fun onFetchError(it: Throwable?, searchTerm: String) {
+    private fun onFetchError(it: Throwable?, searchTerm: String? = null) {
         this@UserSearchPresenter.view?.hideLoadingState()
         if (it is TermNotFound) {
             this@UserSearchPresenter.view?.apply {
-                addTermToDenyList(searchTerm)
+                searchTerm?.let { addTermToDenyList(it) }
                 showSearchNotFoundState()
             }
         } else {
-            this@UserSearchPresenter.view?.showGenericErrorState()
+            this@UserSearchPresenter.view?.onUserSearchError()
         }
     }
 
